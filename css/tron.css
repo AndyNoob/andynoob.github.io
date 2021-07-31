@@ -1,3 +1,8 @@
+@font-face {
+    font-family: Common Pixel;
+    src: url("../fonts/common_pixel.TTF");
+}
+
 canvas {
     border-radius: 25px;
     padding: 10px;

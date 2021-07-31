@@ -31,6 +31,11 @@ h1 {
 	font-size: 50px;
 }
 
+@font-face {
+    font-family: Common Pixel;
+    src: url("../fonts/common_pixel.TTF");
+}
+
 .slide-left {
 	animation: slide-out-left 1.5s forwards;
 }
