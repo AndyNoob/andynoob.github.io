@@ -1,0 +1,76 @@
+* {
+	font-family: Lato, sans-serif;
+	user-select: none;
+	font-size: 35px;
+	margin: 0;
+	outline: none;
+}
+
+body {
+	background-color: rgb(41, 41, 41);
+}
+
+body::before {
+	content: "";
+	position: absolute;
+	z-index: -100;
+	width: 100%;
+	height: 100%;
+	background-image: url("../pictures/background_rotated.png");
+	background-attachment: fixed;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+p {
+	display: inline;
+}
+
+h1 {
+	font-size: 50px;
+}
+
+.slide-left {
+	animation: slide-out-left 1.5s forwards;
+}
+
+.slide-left::before {
+	animation: slide-out-left 1.5s forwards;
+}
+
+@keyframes slide-out-left {
+	from {
+		transform: translateX(0%);
+	}
+	to {
+		transform: translateX(-100%);
+	}
+}
+
+@keyframes slide-up {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes slide-right {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes slide-left {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}

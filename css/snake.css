@@ -1,0 +1,46 @@
+div {
+    text-align: center;
+}
+
+a {
+    transform: translateX(20%);
+    /* border: 2px solid white;
+    border-radius: 5px; */
+}
+
+a p {
+    color: black;
+    font-size: 30px;
+    font-family: Common Pixel;
+}
+
+.brushed {
+    background: url("../pictures/brushed_white.png");
+    width: max-content;
+    background-attachment: fixed;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+    background-position-y: -30px;
+}
+
+.anchor-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    transform: translateY(250%);
+}
+
+canvas {
+    border-radius: 25px;
+    padding: 10px;
+    background-color: black;
+    box-shadow: inset 0px 0px 35px 5px rgba(255,255,255,0.4);
+}
+
+@media only screen and (max-width: 748px) {
+    canvas {
+        width: 350px;
+        height: 250px;
+    }
+}

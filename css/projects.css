@@ -1,0 +1,118 @@
+.container {
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.header {
+	flex: 0.2;
+	height: 30%;
+	width: 100%;
+	background-color: rgba(1, 1, 1, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.projects {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	height: 70%;
+	width: 100%;
+    gap: 2em;
+}
+
+.projects > div {
+    margin-top: 2em;
+    flex-shrink: 0;
+	width: 30%;
+	height: 30%;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 25px;
+}
+
+.tron {
+	background-color: rgb(99, 212, 212);
+	background-image: url("../pictures/tron.gif");
+}
+
+.snake {
+	background-color: rgb(161, 161, 161);
+	background-image: url("../pictures/snake.gif");
+	background-position-x: -11px;
+	background-position-y: -11px;
+}
+
+.snake div {
+	color: white;
+}
+
+img {
+	width: 100%;
+	height: 100%;
+	transform: scale(1.1);
+}
+
+.brushed {
+	background: url("../pictures/brushed_white.png");
+	width: max-content;
+	background-attachment: fixed;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position-y: -30px;
+}
+
+.anchor-container {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	transform: translate(50%, -200%);
+}
+
+.anchor-container p {
+    font-family: Common Pixel;
+}
+
+@media only screen and (max-width: 600px) {
+	.projects > div {
+		min-width: 30%;
+		height: 25%;
+	}
+}
+
+@media only screen and (max-width: 780px) {
+	.tron div,
+	.snake div {
+		font-size: 20px;
+	}
+}
+
+@media only screen and (max-width: 460px) {
+	.tron div,
+	.snake div {
+		font-size: 15px;
+	}
+
+    .projects > div {
+		min-width: 25%;
+		height: 20%;
+	}
+}
+
+@media only screen and (max-width: 370px) {
+    .projects > div {
+		min-width: 20%;
+		height: 20%;
+	}
+}

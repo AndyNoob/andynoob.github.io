@@ -1,0 +1,19 @@
+* {
+    scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+    background-color: transparent;
+    height: 8px;
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    height: auto;
+    background-color: #969696;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #6b6b6b;
+}
