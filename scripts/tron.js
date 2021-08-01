@@ -116,7 +116,7 @@ class EnemyCycle extends Cycle {
         ray.setDirection(this.direction);
 		let result = ray.cast(player);
 		let oldDirection = this.direction; //                                                                                            v <- legit javascript why is that not a boolean without != null
-        let isNotValid = possibleX < 15 || possibleX > canvas.width - 15 || possibleY < 15 || possibleY > canvas.height - 15 || (result != null && result.distance < cycleSize);
+        let isNotValid = possibleX < 15 || possibleX > canvas.width - 15 || possibleY < 15 || possibleY > canvas.height - 15 || (result != null && result.distance < 30);
 
 		if (
 			isNotValid || Math.random() > 0.97
@@ -213,11 +213,11 @@ class Ray {
 }
 
 const player = new Cycle("blue");
-player.x = 300;
+player.x = 400;
 player.y = 200;
 const enemies = [
 	// new EnemyCycle("yellow", 300, getRandomBetween(100, 150)),
-	new EnemyCycle("green", getRandomBetween(25, 150), getRandomBetween(100, 200)),
+	new EnemyCycle("red", 200, 300),
 	// new EnemyCycle("black", getRandomBetween(200, 300), getRandomBetween(300, 500)),
 ];
 
