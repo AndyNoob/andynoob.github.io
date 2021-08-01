@@ -22,7 +22,6 @@ a p {
 .brushed {
     background: url("../pictures/brushed_white.png");
     width: max-content;
-    background-attachment: fixed;
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: cover;

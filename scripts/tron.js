@@ -60,8 +60,8 @@ class EnemyCycle extends Cycle {
 		this.y = y;
 		this.index = currentEnemyCount++;
 		this.speed = getRandomBetween(enemySpeed / 2, enemySpeed);
-        this.direction = east;
-        this.locations.push(this.getLocation());
+		this.direction = east;
+		this.locations.push(this.getLocation());
 	}
 
 	bestTurn() {
@@ -80,25 +80,29 @@ class EnemyCycle extends Cycle {
 
 		let directionA = possible[0];
 		let directionB = possible[1];
-        let ray = new Ray(this.x, this.y, null, null);
+		let ray = new Ray(this.x, this.y, null, null);
 
-        ray.setDirection(directionA);
-		let distanceA = (directionA.useZero
-			? directionA.isX
-				? this.x
-				: this.y
-			: directionA.isX
-			? Math.abs(canvas.width - this.x)
-			: Math.abs(canvas.height - this.y)) - ray.cast(player);
+		ray.setDirection(directionA);
+		let result = ray.cast(player);
+		let distanceA =
+			(directionA.useZero
+				? directionA.isX
+					? this.x
+					: this.y
+				: directionA.isX
+				? Math.abs(canvas.width - this.x)
+				: Math.abs(canvas.height - this.y)) - (result != null ? result.distance * 2.2 : 0);
 
-        ray.setDirection(directionB);
-		let distanceB = (directionB.useZero
-			? directionB.isX
-				? this.x
-				: this.y
-			: directionB.isX
-			? Math.abs(canvas.width - this.x)
-			: Math.abs(canvas.height - this.y)) - ray.cast(player);
+		ray.setDirection(directionB);
+		result = ray.cast(player);
+		let distanceB =
+			(directionB.useZero
+				? directionB.isX
+					? this.x
+					: this.y
+				: directionB.isX
+				? Math.abs(canvas.width - this.x)
+				: Math.abs(canvas.height - this.y)) - (result != null ? result.distance * 2.2 : 0);
 
 		return distanceA > directionB
 			? directionA
@@ -113,14 +117,17 @@ class EnemyCycle extends Cycle {
 		let possibleX = this.x + deltaTime * enemySpeed * this.direction.x;
 		let possibleY = this.y - deltaTime * enemySpeed * this.direction.y;
 		let ray = new Ray(possibleX, possibleY, null, null);
-        ray.setDirection(this.direction);
+		ray.setDirection(this.direction);
 		let result = ray.cast(player);
 		let oldDirection = this.direction; //                                                                                            v <- legit javascript why is that not a boolean without != null
-        let isNotValid = possibleX < 15 || possibleX > canvas.width - 15 || possibleY < 15 || possibleY > canvas.height - 15 || (result != null && result.distance < 30);
+		let isNotValid =
+			possibleX < 30 ||
+			possibleX > canvas.width - 30 ||
+			possibleY < 30 ||
+			possibleY > canvas.height - 30 ||
+			(result != null && result.distance < 30);
 
-		if (
-			isNotValid || Math.random() > 0.97
-		) {
+		if (isNotValid || Math.random() > 0.97) {
 			let next = this.bestTurn();
 
 			if (!next) {
@@ -129,7 +136,6 @@ class EnemyCycle extends Cycle {
 
 			this.direction = next;
 		}
-
 
 		if (this.direction != oldDirection) {
 			this.locations.push(this.getLocation());
@@ -215,11 +221,7 @@ class Ray {
 const player = new Cycle("blue");
 player.x = 400;
 player.y = 200;
-const enemies = [
-	// new EnemyCycle("yellow", 300, getRandomBetween(100, 150)),
-	new EnemyCycle("red", 200, 300),
-	// new EnemyCycle("black", getRandomBetween(200, 300), getRandomBetween(300, 500)),
-];
+const enemies = [new EnemyCycle("red", 200, 300)];
 
 let deltaTime = 0;
 let isPlaying = false;
@@ -277,8 +279,6 @@ function render() {
 	if (player.alive) {
 		let location = player.getLocation();
 
-		// console.log(player.locations);
-
 		for (let i = 0; i < player.locations.length; i++) {
 			let currentLocation = player.locations[i];
 			let nextLocation = location;
@@ -298,9 +298,7 @@ function render() {
 		}
 
 		context.fillStyle = player.color;
-		// console.log(location);
 		context.fillRect(location.x - cycleSize / 2, location.y - cycleSize / 2, cycleSize, cycleSize);
-		// context.fillRect(0, 0, 20, 20);
 	}
 
 	for (let enemy of enemies) {
@@ -325,7 +323,6 @@ function render() {
 		}
 
 		context.fillStyle = enemy.color;
-		// console.log(location);
 		context.fillRect(location.x - cycleSize / 2, location.y - cycleSize / 2, cycleSize, cycleSize);
 	}
 
@@ -343,16 +340,36 @@ function checkCollision() {
 
 	let location = player.getLocation();
 
-	if (
-		location.x < 0 ||
-		location.x > canvas.width ||
-		location.y < 0 ||
-		location.y > canvas.height
-	) {
+	if (location.x < 0 || location.x > canvas.width || location.y < 0 || location.y > canvas.height) {
 		console.log("player out of bounds");
 		player.alive = false;
 		return;
 	}
+
+	for (let i = 0; i < player.locations.length; i++) {
+        if (!player.locations[i + 1]) {
+            break;
+        }
+
+        let currentLocation = player.locations[i];
+        let nextLocation = player.locations[i + 1];
+        let offset = cycleSize / 2;
+
+        let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
+		let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
+
+		let maxY = Math.max(currentLocation.y, nextLocation.y) + offset;
+		let minY = Math.min(currentLocation.y, nextLocation.y) - offset;
+
+		if (location.x < maxX && location.x > minX && location.y < maxY && location.y > minY) {
+			if (directionChanged) {
+				directionChanged = false;
+			} else {
+				console.log("player collided with player");
+				player.alive = false;
+			}
+		}
+    }
 
 	for (let enemy of enemies) {
 		if (enemy.x < 0 || enemy.x > canvas.width || enemy.y < 0 || enemy.y > canvas.height) {
@@ -367,78 +384,24 @@ function checkCollision() {
 			return;
 		}
 
-		for (let i = 0; i < enemy.locations.length; i++) {
-			let currentLocation = enemy.locations[i];
-			let nextLocation = enemy.locations[i + 1] ? enemy.locations[i + 1] : enemy.getLocation();
+		let ray = new Ray(player.x, player.y, null, null);
+		ray.setDirection(player.direction);
+		let result = ray.cast(enemy);
 
-			let offset = lineWidth / 2;
-
-			let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
-			let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
-
-			let maxY = Math.max(currentLocation.y, nextLocation.y) + offset;
-			let minY = Math.min(currentLocation.y, nextLocation.y) - offset;
-
-			if (location.x < maxX && location.x > minX && location.y < maxY && location.y > minY) {
-				console.log("player collided with enemy");
-				player.alive = false;
-			}
-		}
-	}
-
-	for (let i = 0; i < player.locations.length; i++) {
-		let currentLocation = player.locations[i];
-		let nextLocation = player.locations[i + 1];
-		let offset = lineWidth / 2;
-
-		if (!nextLocation) {
-			nextLocation = player.getLocation();
-
-			let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
-			let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
-
-			let maxY = Math.max(currentLocation.y, nextLocation.y) + offset;
-			let minY = Math.min(currentLocation.y, nextLocation.y) - offset;
-
-			for (let enemy of enemies) {
-				let enemyLocation = enemy.getLocation();
-
-				if (
-					enemyLocation.x < maxX &&
-					enemyLocation.x > minX &&
-					enemyLocation.y < maxY &&
-					enemyLocation.y > minY
-				) {
-					console.log("enemy collided with player, removing");
-					removeEnemy(enemy);
-				}
-			}
-
-			continue;
+		if (result != null && result.distance < lineWidth) {
+			console.log("player collided with enemy");
+			player.alive = false;
+			return;
 		}
 
-		let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
-		let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
+		ray = new Ray(enemy.x, enemy.y, null, null);
+		ray.setDirection(enemy.direction);
+		result = ray.cast(player);
 
-		let maxY = Math.max(currentLocation.y, nextLocation.y) + offset;
-		let minY = Math.min(currentLocation.y, nextLocation.y) - offset;
-
-		if (location.x < maxX && location.x > minX && location.y < maxY && location.y > minY) {
-			if (directionChanged) {
-				directionChanged = false;
-			} else {
-				console.log("player collided with player");
-				player.alive = false;
-			}
-		}
-
-		for (let enemy of enemies) {
-			let enemyLocation = enemy.getLocation();
-
-			if (enemyLocation.x < maxX && enemyLocation.x > minX && enemyLocation.y < maxY && enemyLocation.y > minY) {
-				console.log("enemy collided with player, removing");
-				removeEnemy(enemy);
-			}
+		if (result != null && result.distance < lineWidth) {
+			console.log("enemy collided with player, removing");
+			removeEnemy(enemy);
+			return;
 		}
 	}
 }
