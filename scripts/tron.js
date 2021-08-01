@@ -17,13 +17,14 @@ const cycleSize = 20;
 const lineWidth = 12;
 
 //#region Directions
-const none = { x: 0, y: 0, isX: false };
+const none = { x: 0, y: 0, isX: false, useZero: false };
 // y
-const north = { x: 0, y: 1, isX: false };
-const south = { x: 0, y: -1, isX: false };
+const north = { x: 0, y: 1, isX: false, useZero: true };
+const south = { x: 0, y: -1, isX: false, useZero: false };
 // x
-const west = { x: -1, y: 0, isX: true };
-const east = { x: 1, y: 0, isX: true };
+const west = { x: -1, y: 0, isX: true, useZero: true };
+const east = { x: 1, y: 0, isX: true, useZero: false };
+const directions = [north, south, west, east];
 //#endregion
 
 class Cycle {
@@ -50,46 +51,164 @@ class Cycle {
 let currentEnemyCount = 0;
 
 class EnemyCycle extends Cycle {
+	lastRayCheck = performance.now();
+	shouldRay = false;
+
 	constructor(color, x, y) {
 		super(color);
 		this.x = x;
 		this.y = y;
 		this.index = currentEnemyCount++;
 		this.speed = getRandomBetween(enemySpeed / 2, enemySpeed);
+        this.direction = east;
+        this.locations.push(this.getLocation());
+	}
+
+	bestTurn() {
+		let possible;
+
+		switch (this.direction) {
+			case west:
+			case east:
+				possible = [north, south];
+				break;
+			case north:
+			case south:
+				possible = [west, east];
+				break;
+		}
+
+		let directionA = possible[0];
+		let directionB = possible[1];
+        let ray = new Ray(this.x, this.y, null, null);
+
+        ray.setDirection(directionA);
+		let distanceA = (directionA.useZero
+			? directionA.isX
+				? this.x
+				: this.y
+			: directionA.isX
+			? Math.abs(canvas.width - this.x)
+			: Math.abs(canvas.height - this.y)) - ray.cast(player);
+
+        ray.setDirection(directionB);
+		let distanceB = (directionB.useZero
+			? directionB.isX
+				? this.x
+				: this.y
+			: directionB.isX
+			? Math.abs(canvas.width - this.x)
+			: Math.abs(canvas.height - this.y)) - ray.cast(player);
+
+		return distanceA > directionB
+			? directionA
+			: distanceB > distanceA
+			? directionB
+			: Math.random() > 0.5
+			? directionA
+			: directionB;
 	}
 
 	tick(deltaTime) {
-		this.x += deltaTime * enemySpeed * this.direction.x;
-		this.y -= deltaTime * enemySpeed * this.direction.y;
+		let possibleX = this.x + deltaTime * enemySpeed * this.direction.x;
+		let possibleY = this.y - deltaTime * enemySpeed * this.direction.y;
+		let ray = new Ray(possibleX, possibleY, null, null);
+        ray.setDirection(this.direction);
+		let result = ray.cast(player);
+		let oldDirection = this.direction; //                                                                                            v <- legit javascript why is that not a boolean without != null
+        let isNotValid = possibleX < 15 || possibleX > canvas.width - 15 || possibleY < 15 || possibleY > canvas.height - 15 || (result != null && result.distance < cycleSize);
 
-		let dx = player.x - this.x;
-		let dy = player.y - this.y;
+		if (
+			isNotValid || Math.random() > 0.97
+		) {
+			let next = this.bestTurn();
 
-		let oldDirection = this.direction;
+			if (!next) {
+				return;
+			}
 
-		if (Math.abs(dx) > Math.abs(dy)) {
-			this.direction =
-				dx > 0
-					? this.direction == west
-						? this.direction
-						: east
-					: this.direction == east
-					? this.direction
-					: west;
-		} else {
-			this.direction =
-				dy > 0
-					? this.direction == north
-						? this.direction
-						: south
-					: this.direction == south
-					? this.direction
-					: north;
+			this.direction = next;
 		}
+
 
 		if (this.direction != oldDirection) {
 			this.locations.push(this.getLocation());
 		}
+
+		this.x += deltaTime * enemySpeed * this.direction.x;
+		this.y -= deltaTime * enemySpeed * this.direction.y;
+	}
+}
+
+class Ray {
+	constructor(originX, originY, directionX, directionY) {
+		this.originX = originX;
+		this.originY = originY;
+		this.directionX = directionX;
+		this.directionY = directionY;
+	}
+
+	setDirection(direction) {
+		this.directionX = direction.x;
+		this.directionY = direction.y;
+	}
+
+	normalize() {
+		let length = Math.sqrt(this.directionX * this.directionX + this.directionY * this.directionY);
+		this.directionX /= length;
+		this.directionY /= length;
+	}
+
+	getOrigin() {
+		return { x: this.originX, y: this.originY };
+	}
+
+	cast(cycle) {
+		let x4 = this.originX + this.directionX;
+		let y4 = this.originY + this.directionY;
+
+		let traced = [];
+
+		for (let i = 0; i < cycle.locations.length; i++) {
+			if (!cycle.locations[i + 1]) {
+				break;
+			}
+
+			let currentLocation = cycle.locations[i];
+			let nextLocation = cycle.locations[i + 1];
+
+			let offset = lineWidth / 2;
+
+			let x2 = Math.max(currentLocation.x, nextLocation.x) + offset;
+			let x1 = Math.min(currentLocation.x, nextLocation.x) - offset;
+
+			let y2 = Math.max(currentLocation.y, nextLocation.y) + offset;
+			let y1 = Math.min(currentLocation.y, nextLocation.y) - offset;
+
+			let denominator = (x1 - x2) * (this.originY - y4) - (y1 - y2) * (this.originX - x4);
+
+			if (!denominator) {
+				continue;
+			}
+
+			let numerator = (x1 - this.originX) * (this.originY - y4) - (y1 - this.originY) * (this.originX - x4);
+			let t = numerator / denominator;
+			numerator = (x1 - x2) * (y1 - this.originY) - (y1 - y2) * (x1 - this.originX);
+			let u = -numerator / denominator;
+
+			if (!(t > 0 && t < 1 && u > 0)) {
+				continue;
+			}
+
+			let x = x1 + t * (x2 - x1);
+			let y = y1 + t * (y2 - y1);
+			let point = { x: x, y: y };
+
+			traced.push({ location: currentLocation, point: point, distance: distance(this.getOrigin(), point) });
+		}
+
+		traced.sort((a, b) => (a.distance < b.distance ? -1 : a.distance > b.distance ? 1 : 0));
+		return traced[0];
 	}
 }
 
@@ -97,9 +216,9 @@ const player = new Cycle("blue");
 player.x = 300;
 player.y = 200;
 const enemies = [
-	new EnemyCycle("red", getRandomBetween(300, 500), getRandomBetween(100, 200)),
-	new EnemyCycle("red", getRandomBetween(25, 150), getRandomBetween(100, 200)),
-	new EnemyCycle("red", getRandomBetween(200, 300), getRandomBetween(300, 500)),
+	// new EnemyCycle("yellow", 300, getRandomBetween(100, 150)),
+	new EnemyCycle("green", getRandomBetween(25, 150), getRandomBetween(100, 200)),
+	// new EnemyCycle("black", getRandomBetween(200, 300), getRandomBetween(300, 500)),
 ];
 
 let deltaTime = 0;
@@ -108,6 +227,7 @@ let isOver = false;
 let startDate = null;
 let lastTick;
 let directionChanged = false;
+let lastPress = performance.now();
 
 $(function () {
 	setInterval(tick, 1000 / tickSpeed);
@@ -139,10 +259,10 @@ function tick() {
 
 	player.tick(deltaTime);
 
-    if (enemies.length == 0) {
-        isOver = true;
-        return;
-    }
+	if (enemies.length == 0) {
+		isOver = true;
+		return;
+	}
 
 	for (let enemy of enemies) {
 		enemy.tick(deltaTime);
@@ -212,7 +332,7 @@ function render() {
 	if (isOver) {
 		context.font = "36px Common Pixel";
 		context.fillStyle = "white";
-		context.fillText("Game Over", canvas.width / 3, canvas.height / 2);
+		context.fillText(player.alive ? "You won" : "You lost", canvas.width / 3, canvas.height / 2);
 	}
 }
 
@@ -225,9 +345,6 @@ function checkCollision() {
 
 	if (
 		location.x < 0 ||
-		location.x > canvas.width ||
-		location.y < 0 ||
-		location.y > canvas.height.x < 0 ||
 		location.x > canvas.width ||
 		location.y < 0 ||
 		location.y > canvas.height
@@ -251,12 +368,8 @@ function checkCollision() {
 		}
 
 		for (let i = 0; i < enemy.locations.length; i++) {
-			if (!enemy.locations[i + 1]) {
-				break;
-			}
-
 			let currentLocation = enemy.locations[i];
-			let nextLocation = enemy.locations[i + 1];
+			let nextLocation = enemy.locations[i + 1] ? enemy.locations[i + 1] : enemy.getLocation();
 
 			let offset = lineWidth / 2;
 
@@ -270,25 +383,39 @@ function checkCollision() {
 				console.log("player collided with enemy");
 				player.alive = false;
 			}
-
-			/* let selfLocation = enemy.getLocation();
-
-            if (selfLocation.x < maxX && selfLocation.x > minX && selfLocation.y < maxY && selfLocation.y > minY) {
-                console.log("enemy collided with self, removing");
-                removeEnemy(enemy);
-            } */
 		}
 	}
 
 	for (let i = 0; i < player.locations.length; i++) {
-		if (!player.locations[i + 1]) {
-			break;
-		}
-
 		let currentLocation = player.locations[i];
 		let nextLocation = player.locations[i + 1];
-
 		let offset = lineWidth / 2;
+
+		if (!nextLocation) {
+			nextLocation = player.getLocation();
+
+			let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
+			let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
+
+			let maxY = Math.max(currentLocation.y, nextLocation.y) + offset;
+			let minY = Math.min(currentLocation.y, nextLocation.y) - offset;
+
+			for (let enemy of enemies) {
+				let enemyLocation = enemy.getLocation();
+
+				if (
+					enemyLocation.x < maxX &&
+					enemyLocation.x > minX &&
+					enemyLocation.y < maxY &&
+					enemyLocation.y > minY
+				) {
+					console.log("enemy collided with player, removing");
+					removeEnemy(enemy);
+				}
+			}
+
+			continue;
+		}
 
 		let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
 		let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
@@ -320,9 +447,9 @@ function removeEnemy(enemyCycle) {
 	enemies.splice(enemies.indexOf(enemyCycle), 1);
 }
 
-function distance(cycleA, cycleB) {
-	let x = Math.pow(cycleA.x - cycleB.x, 2);
-	let y = Math.pow(cycleA.y - cycleB.y, 2);
+function distance(a, b) {
+	let x = Math.pow(a.x - b.x, 2);
+	let y = Math.pow(a.y - b.y, 2);
 
 	return Math.sqrt(x + y);
 }
@@ -353,13 +480,19 @@ function press(key) {
 			break;
 	}
 
-	if (!toPush && player.direction != toPush) {
+	if ((!toPush && player.direction != toPush) || performance.now() - lastPress < 100) {
 		return;
 	}
 
 	player.direction = toPush;
 	isPlaying = true;
 	directionChanged = true;
+	lastPress = performance.now();
+
+	for (let enemy of enemies) {
+		enemy.shouldRay = true;
+	}
+
 	player.locations.push({ x: player.x, y: player.y });
 }
 
