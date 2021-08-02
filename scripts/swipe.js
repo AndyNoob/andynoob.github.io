@@ -1,5 +1,5 @@
-document.addEventListener("touchstart", handleTouchStart, true);
-document.addEventListener("touchmove", handleTouchMove, true);
+document.addEventListener("touchstart", handleTouchStart, { passive: false });
+document.addEventListener("touchmove", handleTouchMove, { passive: false });
 
 let callback = null;
 
@@ -18,7 +18,7 @@ function handleTouchStart(e) {
 
 	xDown = firstTouch.clientX;
 	yDown = firstTouch.clientY;
-	
+
 	e.preventDefault();
 }
 
@@ -34,9 +34,9 @@ function handleTouchMove(e) {
 	let yDiff = yDown - yUp;
 
 	if (Math.abs(xDiff) > Math.abs(yDiff)) {
-		// most significant 
+		// most significant
 		if (xDiff > 0) {
-			// left swipe 
+			// left swipe
 			callback("ArrowLeft");
 		} else {
 			// right swipe
@@ -52,7 +52,7 @@ function handleTouchMove(e) {
 		}
 	}
 
-	// reset values 
+	// reset values
 	xDown = null;
 	yDown = null;
 
