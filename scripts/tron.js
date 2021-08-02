@@ -12,7 +12,7 @@ const canvas = $("canvas")[0];
 const context = canvas.getContext("2d");
 const tickSpeed = 40;
 const speed = 0.2;
-const enemySpeed = 0.17;
+const enemySpeed = 0.2;
 const cycleSize = 20;
 const lineWidth = 12;
 
@@ -84,6 +84,7 @@ class EnemyCycle extends Cycle {
 
 		ray.setDirection(directionA);
 		let result = ray.cast(player);
+		let rayDistanceA = result != null ? result.distance : 0;
 		let distanceA =
 			(directionA.useZero
 				? directionA.isX
@@ -91,10 +92,11 @@ class EnemyCycle extends Cycle {
 					: this.y
 				: directionA.isX
 				? Math.abs(canvas.width - this.x)
-				: Math.abs(canvas.height - this.y)) - (result != null ? result.distance * 2.2 : 0);
+				: Math.abs(canvas.height - this.y)) - rayDistanceA;
 
 		ray.setDirection(directionB);
 		result = ray.cast(player);
+		let rayDistanceB = result != null ? result.distance : 0;
 		let distanceB =
 			(directionB.useZero
 				? directionB.isX
@@ -102,7 +104,13 @@ class EnemyCycle extends Cycle {
 					: this.y
 				: directionB.isX
 				? Math.abs(canvas.width - this.x)
-				: Math.abs(canvas.height - this.y)) - (result != null ? result.distance * 2.2 : 0);
+				: Math.abs(canvas.height - this.y)) - rayDistanceB;
+
+		if (rayDistanceA < 50 && rayDistanceB >= 50) {
+			return directionB;
+		} else if (rayDistanceA >= 50 && rayDistanceB < 50) {
+			return directionA;
+		}
 
 		return distanceA > directionB
 			? directionA
@@ -114,18 +122,18 @@ class EnemyCycle extends Cycle {
 	}
 
 	tick(deltaTime) {
-		let possibleX = this.x + deltaTime * enemySpeed * this.direction.x;
-		let possibleY = this.y - deltaTime * enemySpeed * this.direction.y;
+		let possibleX = this.x + deltaTime * 2 * enemySpeed * this.direction.x;
+		let possibleY = this.y - deltaTime * 2 * enemySpeed * this.direction.y;
 		let ray = new Ray(possibleX, possibleY, null, null);
 		ray.setDirection(this.direction);
 		let result = ray.cast(player);
-		let oldDirection = this.direction; //                                                                                            v <- legit javascript why is that not a boolean without != null
+		let oldDirection = this.direction;
 		let isNotValid =
-			possibleX < 30 ||
-			possibleX > canvas.width - 30 ||
-			possibleY < 30 ||
-			possibleY > canvas.height - 30 ||
-			(result != null && result.distance < 30);
+			possibleX < 50 ||
+			possibleX > canvas.width - 50 ||
+			possibleY < 50 ||
+			possibleY > canvas.height - 50 ||
+			(result != null && result.distance < 50);
 
 		if (isNotValid || Math.random() > 0.97) {
 			let next = this.bestTurn();
@@ -179,7 +187,7 @@ class Ray {
 			let currentLocation = cycle.locations[i];
 			let nextLocation = cycle.locations[i + 1];
 
-            if (nextLocation == null) {
+			if (nextLocation == null) {
 				nextLocation = cycle.getLocation();
 			}
 
@@ -259,8 +267,6 @@ function tick() {
 	deltaTime = now - lastTick;
 	lastTick = now;
 
-	player.tick(deltaTime);
-
 	if (enemies.length == 0) {
 		isOver = true;
 		return;
@@ -269,6 +275,8 @@ function tick() {
 	for (let enemy of enemies) {
 		enemy.tick(deltaTime);
 	}
+
+	player.tick(deltaTime);
 
 	checkCollision();
 }
@@ -347,15 +355,15 @@ function checkCollision() {
 	}
 
 	for (let i = 0; i < player.locations.length; i++) {
-        if (!player.locations[i + 1]) {
-            break;
-        }
+		if (!player.locations[i + 1]) {
+			break;
+		}
 
-        let currentLocation = player.locations[i];
-        let nextLocation = player.locations[i + 1];
-        let offset = lineWidth / 2;
+		let currentLocation = player.locations[i];
+		let nextLocation = player.locations[i + 1];
+		let offset = lineWidth / 2;
 
-        let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
+		let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
 		let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
 
 		let maxY = Math.max(currentLocation.y, nextLocation.y) + offset;
@@ -369,7 +377,7 @@ function checkCollision() {
 				player.alive = false;
 			}
 		}
-    }
+	}
 
 	for (let enemy of enemies) {
 		if (enemy.x < 0 || enemy.x > canvas.width || enemy.y < 0 || enemy.y > canvas.height) {
