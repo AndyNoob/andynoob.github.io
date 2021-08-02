@@ -353,7 +353,7 @@ function checkCollision() {
 
         let currentLocation = player.locations[i];
         let nextLocation = player.locations[i + 1];
-        let offset = cycleSize / 2;
+        let offset = lineWidth / 2;
 
         let maxX = Math.max(currentLocation.x, nextLocation.x) + offset;
 		let minX = Math.min(currentLocation.x, nextLocation.x) - offset;
@@ -443,7 +443,7 @@ function press(key) {
 			break;
 	}
 
-	if ((!toPush && player.direction != toPush) || performance.now() - lastPress < 100) {
+	if ((!toPush && player.direction != toPush) || performance.now() - lastPress < 120) {
 		return;
 	}
 
