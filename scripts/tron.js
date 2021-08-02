@@ -176,12 +176,12 @@ class Ray {
 		let traced = [];
 
 		for (let i = 0; i < cycle.locations.length; i++) {
-			if (!cycle.locations[i + 1]) {
-				break;
-			}
-
 			let currentLocation = cycle.locations[i];
 			let nextLocation = cycle.locations[i + 1];
+
+            if (nextLocation == null) {
+				nextLocation = cycle.getLocation();
+			}
 
 			let offset = lineWidth / 2;
 
@@ -388,7 +388,7 @@ function checkCollision() {
 		ray.setDirection(player.direction);
 		let result = ray.cast(enemy);
 
-		if (result != null && result.distance < lineWidth) {
+		if (result != null && result.distance < cycleSize) {
 			console.log("player collided with enemy");
 			player.alive = false;
 			return;
@@ -398,7 +398,7 @@ function checkCollision() {
 		ray.setDirection(enemy.direction);
 		result = ray.cast(player);
 
-		if (result != null && result.distance < lineWidth) {
+		if (result != null && result.distance < cycleSize) {
 			console.log("enemy collided with player, removing");
 			removeEnemy(enemy);
 			return;
