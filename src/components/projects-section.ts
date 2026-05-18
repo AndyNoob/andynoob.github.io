@@ -64,6 +64,9 @@ export class ProjectsSection extends LitElement {
                 html`<div role="listitem"><project-card .project=${project}></project-card></div>`
             )}
           </div>
+          <p class="more-link">
+            <a href="/projects/">Go to the project page for more</a>
+          </p>
         </div>
       </section>
     `
@@ -114,25 +117,37 @@ export class ProjectsSection extends LitElement {
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.28);
       background: rgba(0, 0, 0, 0.35);
-      color: inherit;
+      color: #eef8ff;
       padding: 0.35rem 0.75rem;
       cursor: pointer;
     }
 
     button[data-active] {
-      background: rgba(255, 255, 255, 0.2);
-      border-color: rgba(255, 255, 255, 0.55);
+      background: #b9e8ff;
+      border-color: #d2efff;
+      color: #0a1a28;
     }
 
     .projects-box {
+      position: relative;
       min-height: 0;
       max-height: 100%;
-      overflow: auto;
+      overflow: hidden;
       border-radius: 1rem;
       border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(0, 0, 0, 0.33);
-      padding: 1rem;
-      scrollbar-gutter: stable both-edges;
+      padding: 1rem 1rem 3.8rem;
+    }
+
+    .projects-box::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 6rem;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.85));
+      pointer-events: none;
     }
 
     .grid {
@@ -140,6 +155,25 @@ export class ProjectsSection extends LitElement {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
       align-items: stretch;
+    }
+
+    .more-link {
+      margin: 0;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0.9rem;
+      text-align: center;
+      z-index: 1;
+    }
+
+    .more-link a {
+      color: #9ddcff;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(157, 220, 255, 0.75);
+      padding-bottom: 0.15rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.01em;
     }
 
     @media (max-width: 1100px) {

@@ -73,14 +73,14 @@ export class IntroSection extends LitElement {
       width: 100%;
       margin: 0;
       color: #fff;
-      -webkit-text-stroke: clamp(1px, 0.04em, 3px) #000;
+      -webkit-text-stroke: clamp(1.5px, 0.055em, 5px) #000;
       paint-order: stroke fill;
       text-shadow: none;
     }
 
     @media (max-width: 768px) {
       .bio {
-        text-align: left;
+        text-align: center;
       }
     }
 

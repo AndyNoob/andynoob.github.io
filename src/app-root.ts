@@ -180,9 +180,9 @@ export class AppRoot extends LitElement {
     }
 
     a[data-active] {
-      background: rgba(0, 0, 0, 0.72);
-      border-color: rgba(127, 215, 255, 0.95);
-      color: #ecf8ff;
+      background: #b9e8ff;
+      border-color: #e0f4ff;
+      color: #081826;
     }
 
     main {
