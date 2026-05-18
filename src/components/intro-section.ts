@@ -1,5 +1,5 @@
 import { LitElement, css, html } from 'lit'
-import { customElement, property, state } from 'lit/decorators.js'
+import { customElement, property } from 'lit/decorators.js'
 
 @customElement('intro-section')
 export class IntroSection extends LitElement {
@@ -12,32 +12,12 @@ export class IntroSection extends LitElement {
   @property({ type: String })
   bio = ''
 
-  @state()
-  private visible = false
-
-  private observer: IntersectionObserver | null = null
-
-  firstUpdated(): void {
-    this.observer = new IntersectionObserver(
-      (entries) => {
-        this.visible = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio > 0.45)
-      },
-      { threshold: [0.25, 0.45, 0.65] }
-    )
-    this.observer.observe(this)
-  }
-
-  disconnectedCallback(): void {
-    this.observer?.disconnect()
-    super.disconnectedCallback()
-  }
-
   protected render() {
     return html`
       <section aria-labelledby="intro-title" class="page">
-        <div class=${`content ${this.visible ? 'is-visible' : 'is-hidden'}`}>
+        <div class="content">
           <div class="hello"><h1 id="intro-title">${this.title}</h1></div>
-          <p class="subtitle">${this.subtitle}</p>
+          ${this.subtitle ? html`<p class="subtitle">${this.subtitle}</p>` : null}
           <p class="bio">${this.bio}</p>
         </div>
       </section>
@@ -61,19 +41,7 @@ export class IntroSection extends LitElement {
       text-align: center;
       gap: clamp(0.9rem, 1.5vw, 1.4rem);
       width: min(92vw, 1200px);
-      transition:
-        transform 450ms ease,
-        opacity 450ms ease;
-    }
-
-    .content.is-visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .content.is-hidden {
-      opacity: 0;
-      transform: translateX(-8vw);
+      animation: slideIn 460ms ease both;
     }
 
     h1 {
@@ -81,18 +49,27 @@ export class IntroSection extends LitElement {
       font-size: clamp(5.5rem, 21vw, 16rem);
       font-weight: 700;
       line-height: 1;
+      --outline-size: clamp(2px, 0.06em, 10px);
       text-shadow:
-        -2px 0 #000,
-        0 2px #000,
-        2px 0 #000,
-        0 -2px #000,
-        0 0 14px rgba(0, 0, 0, 0.7);
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000,
+        calc(-1 * var(--outline-size)) calc(-1 * var(--outline-size)) 0 #000,
+        var(--outline-size) calc(-1 * var(--outline-size)) 0 #000,
+        calc(-1 * var(--outline-size)) var(--outline-size) 0 #000,
+        var(--outline-size) var(--outline-size) 0 #000;
     }
 
     .subtitle {
       font-size: clamp(1.5rem, 3vw, 2.4rem);
       opacity: 0.85;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.85);
+      --outline-size: clamp(1px, 0.045em, 4px);
+      text-shadow:
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000;
       margin: 0;
     }
 
@@ -103,12 +80,28 @@ export class IntroSection extends LitElement {
       text-align: right;
       width: 100%;
       margin: 0;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
+      --outline-size: clamp(1px, 0.04em, 3px);
+      text-shadow:
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000;
     }
 
     @media (max-width: 768px) {
       .bio {
         text-align: left;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(-8vw);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
       }
     }
   `

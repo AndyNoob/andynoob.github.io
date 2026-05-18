@@ -75,19 +75,24 @@ export class ContactSection extends LitElement {
     h2 {
       margin: 0;
       font-size: clamp(2.2rem, 5vw, 3.2rem);
+      --outline-size: clamp(1px, 0.045em, 4px);
       text-shadow:
-        -1px 0 #000,
-        0 1px #000,
-        1px 0 #000,
-        0 -1px #000,
-        0 0 10px rgba(0, 0, 0, 0.75);
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000;
     }
 
     p {
       margin: 0;
       line-height: 1.5;
       opacity: 0.9;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.85);
+      --outline-size: clamp(1px, 0.04em, 3px);
+      text-shadow:
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000;
     }
 
     .gallery {

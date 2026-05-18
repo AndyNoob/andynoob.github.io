@@ -86,12 +86,12 @@ export class ProjectsSection extends LitElement {
     h2 {
       margin: 0;
       font-size: clamp(2.4rem, 5.5vw, 3.4rem);
+      --outline-size: clamp(1px, 0.045em, 4px);
       text-shadow:
-        -1px 0 #000,
-        0 1px #000,
-        1px 0 #000,
-        0 -1px #000,
-        0 0 10px rgba(0, 0, 0, 0.7);
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000;
     }
 
     p {
@@ -99,7 +99,12 @@ export class ProjectsSection extends LitElement {
       opacity: 0.85;
       max-width: 45rem;
       font-size: clamp(1rem, 1.5vw, 1.2rem);
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.85);
+      --outline-size: clamp(1px, 0.04em, 3px);
+      text-shadow:
+        calc(-1 * var(--outline-size)) 0 0 #000,
+        var(--outline-size) 0 0 #000,
+        0 calc(-1 * var(--outline-size)) 0 #000,
+        0 var(--outline-size) 0 #000;
     }
 
     .filters {
@@ -135,13 +140,25 @@ export class ProjectsSection extends LitElement {
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
       align-items: stretch;
     }
 
     [role='listitem'] {
       min-height: 100%;
+    }
+
+    @media (max-width: 1100px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
     }
   `
 }

@@ -30,11 +30,50 @@ export class AppRoot extends LitElement {
   @state()
   private loadError = ''
 
-  private sectionObserver: IntersectionObserver | null = null
+  private wheelDelta = 0
+  private lastWheelAt = 0
+  private wheelNavigationLock = false
 
   private onHashChange = () => {
     this.route = resolveRoute(window.location.hash)
-    this.scrollToRoute(this.route)
+  }
+
+  private onWheel = (event: WheelEvent) => {
+    if (this.wheelNavigationLock) {
+      event.preventDefault()
+      return
+    }
+
+    if (!this.canNavigateFromProjects(event.deltaY)) {
+      return
+    }
+
+    const now = performance.now()
+    if (now - this.lastWheelAt > 280) {
+      this.wheelDelta = 0
+    }
+    this.lastWheelAt = now
+    this.wheelDelta += event.deltaY
+
+    if (Math.abs(this.wheelDelta) < 140) {
+      return
+    }
+
+    event.preventDefault()
+    const direction = this.wheelDelta > 0 ? 1 : -1
+    this.wheelDelta = 0
+
+    const currentIndex = routeOrder.indexOf(this.route)
+    const nextIndex = Math.min(Math.max(currentIndex + direction, 0), routeOrder.length - 1)
+    if (nextIndex === currentIndex) {
+      return
+    }
+
+    this.wheelNavigationLock = true
+    window.location.hash = `#/${routeOrder[nextIndex]}`
+    window.setTimeout(() => {
+      this.wheelNavigationLock = false
+    }, 500)
   }
 
   connectedCallback(): void {
@@ -43,46 +82,37 @@ export class AppRoot extends LitElement {
       window.location.hash = defaultHash
     }
     window.addEventListener('hashchange', this.onHashChange)
+    window.addEventListener('wheel', this.onWheel, { passive: false })
     void this.bootstrapProjects()
-  }
-
-  firstUpdated(): void {
-    this.scrollToRoute(this.route)
-    this.attachSectionObserver()
   }
 
   disconnectedCallback(): void {
     window.removeEventListener('hashchange', this.onHashChange)
-    this.sectionObserver?.disconnect()
+    window.removeEventListener('wheel', this.onWheel)
     super.disconnectedCallback()
   }
 
-  private attachSectionObserver() {
-    const sections = [...this.renderRoot.querySelectorAll<HTMLElement>('[data-route]')]
-    this.sectionObserver = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        if (!visible) return
+  private canNavigateFromProjects(deltaY: number): boolean {
+    if (this.route !== 'projects') {
+      return true
+    }
 
-        const route = visible.target.getAttribute('data-route')
-        if (route === 'intro' || route === 'projects' || route === 'contact') {
-          this.route = route
-          if (window.location.hash !== `#/${route}`) {
-            window.history.replaceState(null, '', `#/${route}`)
-          }
-        }
-      },
-      { threshold: [0.35, 0.6, 0.8] }
-    )
+    const projectsSection = this.renderRoot.querySelector('projects-section')
+    const projectsBox = projectsSection?.shadowRoot?.querySelector<HTMLElement>('.projects-box')
+    if (!projectsBox) {
+      return true
+    }
 
-    sections.forEach((section) => this.sectionObserver?.observe(section))
-  }
+    const maxScroll = projectsBox.scrollHeight - projectsBox.clientHeight
+    if (maxScroll <= 0) {
+      return true
+    }
 
-  private scrollToRoute(route: Route) {
-    const target = this.renderRoot.querySelector<HTMLElement>(`[data-route="${route}"]`)
-    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (deltaY > 0) {
+      return projectsBox.scrollTop + projectsBox.clientHeight >= projectsBox.scrollHeight - 2
+    }
+
+    return projectsBox.scrollTop <= 2
   }
 
   private async bootstrapProjects() {
@@ -98,31 +128,38 @@ export class AppRoot extends LitElement {
   private renderRoute() {
     const dictionary = t('en')
 
-    return html`
-      <section class="section" data-route="intro">
-        <intro-section
-          .title=${dictionary.introTitle}
-          .subtitle=${dictionary.introSubtitle}
-          .bio=${dictionary.introBio}
-        ></intro-section>
-      </section>
-
-      <section class="section" data-route="projects">
-        <projects-section
-          .title=${dictionary.projectsTitle}
-          .subtitle=${dictionary.projectsSubtitle}
-          .projects=${this.projects}
-        ></projects-section>
-        ${this.loadError ? html`<p class="error">${this.loadError}</p>` : null}
-      </section>
-
-      <section class="section" data-route="contact">
-        <contact-section
-          .title=${dictionary.contactTitle}
-          .subtitle=${dictionary.contactSubtitle}
-        ></contact-section>
-      </section>
-    `
+    switch (this.route) {
+      case 'projects':
+        return html`
+          <section class="section">
+            <projects-section
+              .title=${dictionary.projectsTitle}
+              .subtitle=${dictionary.projectsSubtitle}
+              .projects=${this.projects}
+            ></projects-section>
+            ${this.loadError ? html`<p class="error">${this.loadError}</p>` : null}
+          </section>
+        `
+      case 'contact':
+        return html`
+          <section class="section">
+            <contact-section
+              .title=${dictionary.contactTitle}
+              .subtitle=${dictionary.contactSubtitle}
+            ></contact-section>
+          </section>
+        `
+      default:
+        return html`
+          <section class="section">
+            <intro-section
+              .title=${dictionary.introTitle}
+              .subtitle=${dictionary.introSubtitle}
+              .bio=${dictionary.introBio}
+            ></intro-section>
+          </section>
+        `
+    }
   }
 
   protected render() {
@@ -144,9 +181,10 @@ export class AppRoot extends LitElement {
 
   static styles = css`
     .app {
-      min-height: 100svh;
+      height: 100svh;
       color: white;
       position: relative;
+      overflow: hidden;
     }
 
     nav {
@@ -176,23 +214,34 @@ export class AppRoot extends LitElement {
     }
 
     a[data-active] {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.85);
+      background: rgba(0, 0, 0, 0.72);
+      border-color: rgba(127, 215, 255, 0.95);
+      color: #ecf8ff;
     }
 
     main {
-      min-height: 100svh;
+      height: 100svh;
       padding-right: 4.5rem;
+      overflow: hidden;
     }
 
     .section {
-      min-height: 100svh;
-      scroll-margin-top: 0;
+      height: 100svh;
+      position: relative;
+      overflow: hidden;
     }
 
     .error {
-      margin: 0 2rem 2rem;
+      margin: 0;
+      position: absolute;
+      left: 1rem;
+      right: 5.2rem;
+      bottom: 0.75rem;
       color: #ffcccc;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 204, 204, 0.45);
+      border-radius: 0.5rem;
+      padding: 0.45rem 0.6rem;
     }
 
     @media (max-width: 768px) {

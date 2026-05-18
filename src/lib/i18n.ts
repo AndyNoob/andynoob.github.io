@@ -12,7 +12,7 @@ const dictionaries = {
   en: {
     introTitle: 'Hello',
     introBio: 'I am Andy, a programmer and gamer.',
-    introSubtitle: 'Welcome to my corner of the internet.',
+    introSubtitle: '',
     projectsTitle: 'Projects',
     projectsSubtitle: 'Recent work and experiments rendered from project data.',
     contactTitle: 'Contact & Legacy',
