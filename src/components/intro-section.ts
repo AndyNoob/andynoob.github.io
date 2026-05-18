@@ -1,5 +1,5 @@
 import { LitElement, css, html } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
+import { customElement, property, state } from 'lit/decorators.js'
 
 @customElement('intro-section')
 export class IntroSection extends LitElement {
@@ -12,63 +12,103 @@ export class IntroSection extends LitElement {
   @property({ type: String })
   bio = ''
 
+  @state()
+  private visible = false
+
+  private observer: IntersectionObserver | null = null
+
+  firstUpdated(): void {
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        this.visible = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio > 0.45)
+      },
+      { threshold: [0.25, 0.45, 0.65] }
+    )
+    this.observer.observe(this)
+  }
+
+  disconnectedCallback(): void {
+    this.observer?.disconnect()
+    super.disconnectedCallback()
+  }
+
   protected render() {
     return html`
       <section aria-labelledby="intro-title" class="page">
-        <div class="hello"><h1 id="intro-title">${this.title}</h1></div>
-        <p class="subtitle">${this.subtitle}</p>
-        <p class="bio">${this.bio}</p>
+        <div class=${`content ${this.visible ? 'is-visible' : 'is-hidden'}`}>
+          <div class="hello"><h1 id="intro-title">${this.title}</h1></div>
+          <p class="subtitle">${this.subtitle}</p>
+          <p class="bio">${this.bio}</p>
+        </div>
       </section>
     `
   }
 
   static styles = css`
     .page {
-      min-height: 100vh;
+      height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: clamp(1.2rem, 2vw, 2rem);
+      overflow: clip;
+    }
+
+    .content {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       text-align: center;
-      gap: 1rem;
-      padding: 2rem;
-      animation: fadeUp 0.4s ease;
+      gap: clamp(0.9rem, 1.5vw, 1.4rem);
+      width: min(92vw, 1200px);
+      transition:
+        transform 450ms ease,
+        opacity 450ms ease;
+    }
+
+    .content.is-visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .content.is-hidden {
+      opacity: 0;
+      transform: translateX(-8vw);
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(4rem, 16vw, 11rem);
+      font-size: clamp(5.5rem, 21vw, 16rem);
       font-weight: 700;
       line-height: 1;
+      text-shadow:
+        -2px 0 #000,
+        0 2px #000,
+        2px 0 #000,
+        0 -2px #000,
+        0 0 14px rgba(0, 0, 0, 0.7);
     }
 
     .subtitle {
-      font-size: clamp(1.1rem, 2.3vw, 1.7rem);
+      font-size: clamp(1.5rem, 3vw, 2.4rem);
       opacity: 0.85;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.85);
+      margin: 0;
     }
 
     .bio {
-      max-width: 45rem;
-      font-size: clamp(1.05rem, 2vw, 1.5rem);
+      max-width: 54rem;
+      font-size: clamp(1.35rem, 2.5vw, 2rem);
       line-height: 1.5;
       text-align: right;
       width: 100%;
+      margin: 0;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
     }
 
     @media (max-width: 768px) {
       .bio {
         text-align: left;
-      }
-    }
-
-    @keyframes fadeUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
       }
     }
   `

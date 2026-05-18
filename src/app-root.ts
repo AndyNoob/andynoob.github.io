@@ -30,8 +30,11 @@ export class AppRoot extends LitElement {
   @state()
   private loadError = ''
 
+  private sectionObserver: IntersectionObserver | null = null
+
   private onHashChange = () => {
     this.route = resolveRoute(window.location.hash)
+    this.scrollToRoute(this.route)
   }
 
   connectedCallback(): void {
@@ -43,9 +46,43 @@ export class AppRoot extends LitElement {
     void this.bootstrapProjects()
   }
 
+  firstUpdated(): void {
+    this.scrollToRoute(this.route)
+    this.attachSectionObserver()
+  }
+
   disconnectedCallback(): void {
     window.removeEventListener('hashchange', this.onHashChange)
+    this.sectionObserver?.disconnect()
     super.disconnectedCallback()
+  }
+
+  private attachSectionObserver() {
+    const sections = [...this.renderRoot.querySelectorAll<HTMLElement>('[data-route]')]
+    this.sectionObserver = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (!visible) return
+
+        const route = visible.target.getAttribute('data-route')
+        if (route === 'intro' || route === 'projects' || route === 'contact') {
+          this.route = route
+          if (window.location.hash !== `#/${route}`) {
+            window.history.replaceState(null, '', `#/${route}`)
+          }
+        }
+      },
+      { threshold: [0.35, 0.6, 0.8] }
+    )
+
+    sections.forEach((section) => this.sectionObserver?.observe(section))
+  }
+
+  private scrollToRoute(route: Route) {
+    const target = this.renderRoot.querySelector<HTMLElement>(`[data-route="${route}"]`)
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   private async bootstrapProjects() {
@@ -61,32 +98,31 @@ export class AppRoot extends LitElement {
   private renderRoute() {
     const dictionary = t('en')
 
-    switch (this.route) {
-      case 'projects':
-        return html`
-          <projects-section
-            .title=${dictionary.projectsTitle}
-            .subtitle=${dictionary.projectsSubtitle}
-            .projects=${this.projects}
-          ></projects-section>
-          ${this.loadError ? html`<p class="error">${this.loadError}</p>` : null}
-        `
-      case 'contact':
-        return html`
-          <contact-section
-            .title=${dictionary.contactTitle}
-            .subtitle=${dictionary.contactSubtitle}
-          ></contact-section>
-        `
-      default:
-        return html`
-          <intro-section
-            .title=${dictionary.introTitle}
-            .subtitle=${dictionary.introSubtitle}
-            .bio=${dictionary.introBio}
-          ></intro-section>
-        `
-    }
+    return html`
+      <section class="section" data-route="intro">
+        <intro-section
+          .title=${dictionary.introTitle}
+          .subtitle=${dictionary.introSubtitle}
+          .bio=${dictionary.introBio}
+        ></intro-section>
+      </section>
+
+      <section class="section" data-route="projects">
+        <projects-section
+          .title=${dictionary.projectsTitle}
+          .subtitle=${dictionary.projectsSubtitle}
+          .projects=${this.projects}
+        ></projects-section>
+        ${this.loadError ? html`<p class="error">${this.loadError}</p>` : null}
+      </section>
+
+      <section class="section" data-route="contact">
+        <contact-section
+          .title=${dictionary.contactTitle}
+          .subtitle=${dictionary.contactSubtitle}
+        ></contact-section>
+      </section>
+    `
   }
 
   protected render() {
@@ -108,7 +144,7 @@ export class AppRoot extends LitElement {
 
   static styles = css`
     .app {
-      min-height: 100vh;
+      min-height: 100svh;
       color: white;
       position: relative;
     }
@@ -121,7 +157,7 @@ export class AppRoot extends LitElement {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      z-index: 5;
+      z-index: 10;
     }
 
     a {
@@ -136,6 +172,7 @@ export class AppRoot extends LitElement {
       background: rgba(0, 0, 0, 0.45);
       letter-spacing: 0.08em;
       font-size: 0.68rem;
+      backdrop-filter: blur(4px);
     }
 
     a[data-active] {
@@ -144,8 +181,13 @@ export class AppRoot extends LitElement {
     }
 
     main {
-      min-height: 100vh;
+      min-height: 100svh;
       padding-right: 4.5rem;
+    }
+
+    .section {
+      min-height: 100svh;
+      scroll-margin-top: 0;
     }
 
     .error {

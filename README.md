@@ -22,3 +22,7 @@ Legacy static pages (including mini-games) are archived under `/public/legacy` a
 ## Routing
 
 The SPA uses hash-based routing (`#/intro`, `#/projects`, `#/contact`) for reliable GitHub Pages hosting.
+
+## TODO
+
+- Investigate fallback thumbnail auto-generation when a project thumbnail is missing (e.g., attempt snapshot/preview from the target link/embed).

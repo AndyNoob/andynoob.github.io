@@ -57,11 +57,13 @@ export class ProjectsSection extends LitElement {
           )}
         </div>
 
-        <div class="grid" role="list">
-          ${this.filteredProjects.map(
-            (project) =>
-              html`<div role="listitem"><project-card .project=${project}></project-card></div>`
-          )}
+        <div class="projects-box">
+          <div class="grid" role="list">
+            ${this.filteredProjects.map(
+              (project) =>
+                html`<div role="listitem"><project-card .project=${project}></project-card></div>`
+            )}
+          </div>
         </div>
       </section>
     `
@@ -69,9 +71,12 @@ export class ProjectsSection extends LitElement {
 
   static styles = css`
     .page {
-      min-height: 100vh;
-      padding: 5rem 2rem;
-      animation: fadeUp 0.4s ease;
+      height: 100svh;
+      padding: clamp(1.1rem, 2vw, 2rem) clamp(1rem, 2.2vw, 2.2rem);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 0;
+      overflow: clip;
     }
 
     header {
@@ -80,13 +85,21 @@ export class ProjectsSection extends LitElement {
 
     h2 {
       margin: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
+      font-size: clamp(2.4rem, 5.5vw, 3.4rem);
+      text-shadow:
+        -1px 0 #000,
+        0 1px #000,
+        1px 0 #000,
+        0 -1px #000,
+        0 0 10px rgba(0, 0, 0, 0.7);
     }
 
     p {
       margin: 0.6rem 0 0;
       opacity: 0.85;
       max-width: 45rem;
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.85);
     }
 
     .filters {
@@ -110,6 +123,16 @@ export class ProjectsSection extends LitElement {
       border-color: rgba(255, 255, 255, 0.55);
     }
 
+    .projects-box {
+      min-height: 0;
+      overflow: auto;
+      border-radius: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.33);
+      padding: 1rem;
+      scrollbar-gutter: stable both-edges;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -119,17 +142,6 @@ export class ProjectsSection extends LitElement {
 
     [role='listitem'] {
       min-height: 100%;
-    }
-
-    @keyframes fadeUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
     }
   `
 }
