@@ -49,27 +49,19 @@ export class IntroSection extends LitElement {
       font-size: clamp(5.5rem, 21vw, 16rem);
       font-weight: 700;
       line-height: 1;
-      --outline-size: clamp(2px, 0.06em, 10px);
-      text-shadow:
-        calc(-1 * var(--outline-size)) 0 0 #000,
-        var(--outline-size) 0 0 #000,
-        0 calc(-1 * var(--outline-size)) 0 #000,
-        0 var(--outline-size) 0 #000,
-        calc(-1 * var(--outline-size)) calc(-1 * var(--outline-size)) 0 #000,
-        var(--outline-size) calc(-1 * var(--outline-size)) 0 #000,
-        calc(-1 * var(--outline-size)) var(--outline-size) 0 #000,
-        var(--outline-size) var(--outline-size) 0 #000;
+      color: #fff;
+      -webkit-text-stroke: clamp(2px, 0.06em, 10px) #000;
+      paint-order: stroke fill;
+      text-shadow: none;
     }
 
     .subtitle {
       font-size: clamp(1.5rem, 3vw, 2.4rem);
       opacity: 0.85;
-      --outline-size: clamp(1px, 0.045em, 4px);
-      text-shadow:
-        calc(-1 * var(--outline-size)) 0 0 #000,
-        var(--outline-size) 0 0 #000,
-        0 calc(-1 * var(--outline-size)) 0 #000,
-        0 var(--outline-size) 0 #000;
+      color: #fff;
+      -webkit-text-stroke: clamp(1px, 0.045em, 4px) #000;
+      paint-order: stroke fill;
+      text-shadow: none;
       margin: 0;
     }
 
@@ -80,12 +72,10 @@ export class IntroSection extends LitElement {
       text-align: right;
       width: 100%;
       margin: 0;
-      --outline-size: clamp(1px, 0.04em, 3px);
-      text-shadow:
-        calc(-1 * var(--outline-size)) 0 0 #000,
-        var(--outline-size) 0 0 #000,
-        0 calc(-1 * var(--outline-size)) 0 #000,
-        0 var(--outline-size) 0 #000;
+      color: #fff;
+      -webkit-text-stroke: clamp(1px, 0.04em, 3px) #000;
+      paint-order: stroke fill;
+      text-shadow: none;
     }
 
     @media (max-width: 768px) {

@@ -71,27 +71,25 @@ export class ProjectsSection extends LitElement {
 
   static styles = css`
     .page {
-      height: 100svh;
+      height: 100%;
       padding: clamp(1.1rem, 2vw, 2rem) clamp(1rem, 2.2vw, 2.2rem);
       display: grid;
       grid-template-rows: auto auto minmax(0, 1fr);
       gap: 0;
-      overflow: clip;
+      overflow: hidden;
     }
 
     header {
-      margin-bottom: 1.25rem;
+      margin-bottom: 0.75rem;
     }
 
     h2 {
       margin: 0;
       font-size: clamp(2.4rem, 5.5vw, 3.4rem);
-      --outline-size: clamp(1px, 0.045em, 4px);
-      text-shadow:
-        calc(-1 * var(--outline-size)) 0 0 #000,
-        var(--outline-size) 0 0 #000,
-        0 calc(-1 * var(--outline-size)) 0 #000,
-        0 var(--outline-size) 0 #000;
+      color: #fff;
+      -webkit-text-stroke: clamp(1px, 0.045em, 4px) #000;
+      paint-order: stroke fill;
+      text-shadow: none;
     }
 
     p {
@@ -99,19 +97,17 @@ export class ProjectsSection extends LitElement {
       opacity: 0.85;
       max-width: 45rem;
       font-size: clamp(1rem, 1.5vw, 1.2rem);
-      --outline-size: clamp(1px, 0.04em, 3px);
-      text-shadow:
-        calc(-1 * var(--outline-size)) 0 0 #000,
-        var(--outline-size) 0 0 #000,
-        0 calc(-1 * var(--outline-size)) 0 #000,
-        0 var(--outline-size) 0 #000;
+      color: #fff;
+      -webkit-text-stroke: clamp(0.7px, 0.035em, 2px) #000;
+      paint-order: stroke fill;
+      text-shadow: none;
     }
 
     .filters {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      margin: 1rem 0 1.75rem;
+      margin: 0.85rem 0 1rem;
     }
 
     button {
@@ -130,6 +126,7 @@ export class ProjectsSection extends LitElement {
 
     .projects-box {
       min-height: 0;
+      max-height: 100%;
       overflow: auto;
       border-radius: 1rem;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -143,10 +140,6 @@ export class ProjectsSection extends LitElement {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1rem;
       align-items: stretch;
-    }
-
-    [role='listitem'] {
-      min-height: 100%;
     }
 
     @media (max-width: 1100px) {

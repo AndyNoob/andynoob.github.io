@@ -30,50 +30,11 @@ export class AppRoot extends LitElement {
   @state()
   private loadError = ''
 
-  private wheelDelta = 0
-  private lastWheelAt = 0
-  private wheelNavigationLock = false
+  private sectionObserver: IntersectionObserver | null = null
 
   private onHashChange = () => {
     this.route = resolveRoute(window.location.hash)
-  }
-
-  private onWheel = (event: WheelEvent) => {
-    if (this.wheelNavigationLock) {
-      event.preventDefault()
-      return
-    }
-
-    if (!this.canNavigateFromProjects(event.deltaY)) {
-      return
-    }
-
-    const now = performance.now()
-    if (now - this.lastWheelAt > 280) {
-      this.wheelDelta = 0
-    }
-    this.lastWheelAt = now
-    this.wheelDelta += event.deltaY
-
-    if (Math.abs(this.wheelDelta) < 140) {
-      return
-    }
-
-    event.preventDefault()
-    const direction = this.wheelDelta > 0 ? 1 : -1
-    this.wheelDelta = 0
-
-    const currentIndex = routeOrder.indexOf(this.route)
-    const nextIndex = Math.min(Math.max(currentIndex + direction, 0), routeOrder.length - 1)
-    if (nextIndex === currentIndex) {
-      return
-    }
-
-    this.wheelNavigationLock = true
-    window.location.hash = `#/${routeOrder[nextIndex]}`
-    window.setTimeout(() => {
-      this.wheelNavigationLock = false
-    }, 500)
+    this.scrollToRoute(this.route)
   }
 
   connectedCallback(): void {
@@ -82,37 +43,49 @@ export class AppRoot extends LitElement {
       window.location.hash = defaultHash
     }
     window.addEventListener('hashchange', this.onHashChange)
-    window.addEventListener('wheel', this.onWheel, { passive: false })
     void this.bootstrapProjects()
+  }
+
+  firstUpdated(): void {
+    this.attachSectionObserver()
+    this.scrollToRoute(this.route, 'auto')
   }
 
   disconnectedCallback(): void {
     window.removeEventListener('hashchange', this.onHashChange)
-    window.removeEventListener('wheel', this.onWheel)
+    this.sectionObserver?.disconnect()
     super.disconnectedCallback()
   }
 
-  private canNavigateFromProjects(deltaY: number): boolean {
-    if (this.route !== 'projects') {
-      return true
-    }
+  private attachSectionObserver() {
+    const scroller = this.renderRoot.querySelector('main')
+    if (!scroller) return
+    const sections = [...this.renderRoot.querySelectorAll<HTMLElement>('[data-route]')]
 
-    const projectsSection = this.renderRoot.querySelector('projects-section')
-    const projectsBox = projectsSection?.shadowRoot?.querySelector<HTMLElement>('.projects-box')
-    if (!projectsBox) {
-      return true
-    }
+    this.sectionObserver = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (!visible) return
 
-    const maxScroll = projectsBox.scrollHeight - projectsBox.clientHeight
-    if (maxScroll <= 0) {
-      return true
-    }
+        const route = visible.target.getAttribute('data-route')
+        if (route === 'intro' || route === 'projects' || route === 'contact') {
+          this.route = route
+          if (window.location.hash !== `#/${route}`) {
+            window.history.replaceState(null, '', `#/${route}`)
+          }
+        }
+      },
+      { root: scroller, threshold: [0.45, 0.65, 0.85] }
+    )
 
-    if (deltaY > 0) {
-      return projectsBox.scrollTop + projectsBox.clientHeight >= projectsBox.scrollHeight - 2
-    }
+    sections.forEach((section) => this.sectionObserver?.observe(section))
+  }
 
-    return projectsBox.scrollTop <= 2
+  private scrollToRoute(route: Route, behavior: ScrollBehavior = 'smooth') {
+    const target = this.renderRoot.querySelector<HTMLElement>(`[data-route="${route}"]`)
+    target?.scrollIntoView({ behavior, block: 'start' })
   }
 
   private async bootstrapProjects() {
@@ -128,38 +101,31 @@ export class AppRoot extends LitElement {
   private renderRoute() {
     const dictionary = t('en')
 
-    switch (this.route) {
-      case 'projects':
-        return html`
-          <section class="section">
-            <projects-section
-              .title=${dictionary.projectsTitle}
-              .subtitle=${dictionary.projectsSubtitle}
-              .projects=${this.projects}
-            ></projects-section>
-            ${this.loadError ? html`<p class="error">${this.loadError}</p>` : null}
-          </section>
-        `
-      case 'contact':
-        return html`
-          <section class="section">
-            <contact-section
-              .title=${dictionary.contactTitle}
-              .subtitle=${dictionary.contactSubtitle}
-            ></contact-section>
-          </section>
-        `
-      default:
-        return html`
-          <section class="section">
-            <intro-section
-              .title=${dictionary.introTitle}
-              .subtitle=${dictionary.introSubtitle}
-              .bio=${dictionary.introBio}
-            ></intro-section>
-          </section>
-        `
-    }
+    return html`
+      <section class="section" data-route="intro">
+        <intro-section
+          .title=${dictionary.introTitle}
+          .subtitle=${dictionary.introSubtitle}
+          .bio=${dictionary.introBio}
+        ></intro-section>
+      </section>
+
+      <section class="section" data-route="projects">
+        <projects-section
+          .title=${dictionary.projectsTitle}
+          .subtitle=${dictionary.projectsSubtitle}
+          .projects=${this.projects}
+        ></projects-section>
+        ${this.loadError ? html`<p class="error">${this.loadError}</p>` : null}
+      </section>
+
+      <section class="section" data-route="contact">
+        <contact-section
+          .title=${dictionary.contactTitle}
+          .subtitle=${dictionary.contactSubtitle}
+        ></contact-section>
+      </section>
+    `
   }
 
   protected render() {
@@ -222,13 +188,19 @@ export class AppRoot extends LitElement {
     main {
       height: 100svh;
       padding-right: 4.5rem;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-snap-type: y proximity;
+      overscroll-behavior-y: contain;
     }
 
     .section {
       height: 100svh;
+      min-height: 100svh;
       position: relative;
       overflow: hidden;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
 
     .error {
@@ -262,7 +234,6 @@ export class AppRoot extends LitElement {
 
       main {
         padding-right: 0;
-        padding-bottom: 3.5rem;
       }
     }
   `
