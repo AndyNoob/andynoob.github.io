@@ -30,13 +30,18 @@ function sanitizeProject(item: RawProject): Project | null {
   if (!isStatus(item.status)) return null
 
   const rawLinks = item.links as Record<string, unknown> | undefined
-  const links = {
-    live: typeof rawLinks?.live === 'string' ? rawLinks.live : undefined,
-    source: typeof rawLinks?.source === 'string' ? rawLinks.source : undefined,
-    demo: typeof rawLinks?.demo === 'string' ? rawLinks.demo : undefined
+  const links: Project['links'] = {}
+  if (typeof rawLinks?.live === 'string') {
+    links.live = rawLinks.live
+  }
+  if (typeof rawLinks?.source === 'string') {
+    links.source = rawLinks.source
+  }
+  if (typeof rawLinks?.demo === 'string') {
+    links.demo = rawLinks.demo
   }
 
-  return {
+  const project: Project = {
     id: item.id,
     title: item.title,
     summary: item.summary,
@@ -45,9 +50,14 @@ function sanitizeProject(item: RawProject): Project | null {
     thumbnail: item.thumbnail,
     status: item.status,
     featured: item.featured === true,
-    tags: toStringArray(item.tags),
-    date: typeof item.date === 'string' ? item.date : undefined
+    tags: toStringArray(item.tags)
   }
+
+  if (typeof item.date === 'string') {
+    project.date = item.date
+  }
+
+  return project
 }
 
 export async function loadProjects(): Promise<Project[]> {
