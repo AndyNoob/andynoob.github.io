@@ -64,7 +64,7 @@ export async function loadProjects(): Promise<Project[]> {
   const response = await fetch('/data/projects.json')
 
   if (!response.ok) {
-    throw new Error(`Unable to load projects data (${response.status})`)
+    throw new Error(`Unable to load projects data: ${response.status} ${response.statusText}`)
   }
 
   const data = (await response.json()) as unknown

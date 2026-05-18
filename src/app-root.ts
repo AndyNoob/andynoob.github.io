@@ -10,6 +10,7 @@ import './components/contact-section'
 type Route = 'intro' | 'projects' | 'contact'
 
 const routeOrder: Route[] = ['intro', 'projects', 'contact']
+const defaultHash = '#/intro'
 
 function resolveRoute(hash: string): Route {
   const normalized = hash.replace('#/', '').trim()
@@ -36,7 +37,7 @@ export class AppRoot extends LitElement {
   connectedCallback(): void {
     super.connectedCallback()
     if (!window.location.hash) {
-      window.location.hash = '#/intro'
+      window.location.hash = defaultHash
     }
     window.addEventListener('hashchange', this.onHashChange)
     void this.bootstrapProjects()

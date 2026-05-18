@@ -57,8 +57,11 @@ export class ProjectsSection extends LitElement {
           )}
         </div>
 
-        <div class="grid">
-          ${this.filteredProjects.map((project) => html`<project-card .project=${project}></project-card>`)}
+        <div class="grid" role="list">
+          ${this.filteredProjects.map(
+            (project) =>
+              html`<div role="listitem"><project-card .project=${project}></project-card></div>`
+          )}
         </div>
       </section>
     `
@@ -112,6 +115,10 @@ export class ProjectsSection extends LitElement {
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1rem;
       align-items: stretch;
+    }
+
+    [role='listitem'] {
+      min-height: 100%;
     }
 
     @keyframes fadeUp {
