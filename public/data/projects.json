@@ -1,0 +1,45 @@
+[
+  {
+    "id": "main-site",
+    "title": "Personal Site Rewrite",
+    "summary": "This website rebuilt as a Lit + TypeScript + Vite single-page app.",
+    "tech": ["Lit", "TypeScript", "Vite"],
+    "links": {
+      "live": "#/intro",
+      "source": "https://github.com/AndyNoob/andynoob.github.io"
+    },
+    "thumbnail": "/pictures/background.png",
+    "status": "active",
+    "featured": true,
+    "tags": ["web", "portfolio", "frontend"],
+    "date": "2026-05"
+  },
+  {
+    "id": "snake-legacy",
+    "title": "Snake (Legacy)",
+    "summary": "Original canvas snake prototype preserved under legacy routes.",
+    "tech": ["JavaScript", "Canvas"],
+    "links": {
+      "demo": "/legacy/project/snake.html"
+    },
+    "thumbnail": "/legacy/pictures/snake.gif",
+    "status": "archived",
+    "featured": false,
+    "tags": ["game", "legacy", "canvas"],
+    "date": "2022-01"
+  },
+  {
+    "id": "tron-legacy",
+    "title": "Tron Recreation (Legacy)",
+    "summary": "Original light-cycle mini game retained for historical showcase.",
+    "tech": ["JavaScript", "Canvas"],
+    "links": {
+      "demo": "/legacy/project/tron.html"
+    },
+    "thumbnail": "/legacy/pictures/tron.gif",
+    "status": "archived",
+    "featured": false,
+    "tags": ["game", "legacy", "ai"],
+    "date": "2022-01"
+  }
+]
